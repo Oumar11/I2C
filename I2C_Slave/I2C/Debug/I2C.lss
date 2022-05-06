@@ -21,13 +21,13 @@ Idx Name          Size      VMA       LMA       File off  Algn
                   CONTENTS, READONLY, DEBUGGING
   8 .debug_frame  0000013c  00000000  00000000  000024dc  2**2
                   CONTENTS, READONLY, DEBUGGING
-  9 .debug_str    00006188  00000000  00000000  00002618  2**0
+  9 .debug_str    000061b6  00000000  00000000  00002618  2**0
                   CONTENTS, READONLY, DEBUGGING
- 10 .debug_loc    000004ec  00000000  00000000  000087a0  2**0
+ 10 .debug_loc    000004ec  00000000  00000000  000087ce  2**0
                   CONTENTS, READONLY, DEBUGGING
- 11 .debug_ranges 00000080  00000000  00000000  00008c8c  2**0
+ 11 .debug_ranges 00000080  00000000  00000000  00008cba  2**0
                   CONTENTS, READONLY, DEBUGGING
- 12 .debug_macro  000003a3  00000000  00000000  00008d0c  2**0
+ 12 .debug_macro  000003a3  00000000  00000000  00008d3a  2**0
                   CONTENTS, READONLY, DEBUGGING
 
 Disassembly of section .text:
@@ -90,74 +90,42 @@ Disassembly of section .text:
   64:	cd cf       	rjmp	.-102    	; 0x0 <__vectors>
 
 00000066 <i2c_read>:
-	TWBR = 0x47;
-	TWCR = 0x04; // enables the module via TWEN .
-}
-uint8_t i2c_read (uint8_t x)
-{
-	if (x == 0 )							// if x = 1 .. we're reading only 1 byte
   66:	81 11       	cpse	r24, r1
   68:	03 c0       	rjmp	.+6      	; 0x70 <i2c_read+0xa>
-	TWCR = (1<<TWINT)|(1<<TWEN)|(1<<TWEA);	// if x = 0 .. we 're reading more than one byte
   6a:	84 ec       	ldi	r24, 0xC4	; 196
   6c:	86 bf       	out	0x36, r24	; 54
   6e:	02 c0       	rjmp	.+4      	; 0x74 <i2c_read+0xe>
-	else
-	TWCR = (1<<TWINT)|(1<<TWEN);  // no ack is sent here.
   70:	84 e8       	ldi	r24, 0x84	; 132
   72:	86 bf       	out	0x36, r24	; 54
-	while (((TWCR) & (1<<TWINT)) == 0);
   74:	06 b6       	in	r0, 0x36	; 54
   76:	07 fe       	sbrs	r0, 7
   78:	fd cf       	rjmp	.-6      	; 0x74 <i2c_read+0xe>
-	return TWDR;
   7a:	83 b1       	in	r24, 0x03	; 3
-
-}
   7c:	08 95       	ret
 
 0000007e <i2c_listen>:
-void i2c_listen ()
-{
-	while (((TWCR) & (1<<TWINT)) == 0 );
   7e:	06 b6       	in	r0, 0x36	; 54
   80:	07 fe       	sbrs	r0, 7
   82:	fd cf       	rjmp	.-6      	; 0x7e <i2c_listen>
-}
   84:	08 95       	ret
 
 00000086 <i2c_S_init>:
-void i2c_S_init (uint8_t slaveaddress)
-{
-	TWCR = 0x04;
   86:	94 e0       	ldi	r25, 0x04	; 4
   88:	96 bf       	out	0x36, r25	; 54
-	TWAR = slaveaddress;
   8a:	82 b9       	out	0x02, r24	; 2
-	TWCR =(1<<TWINT)|(1<<TWEN)|(1<<TWEA);
   8c:	84 ec       	ldi	r24, 0xC4	; 196
   8e:	86 bf       	out	0x36, r24	; 54
   90:	08 95       	ret
 
 00000092 <lcd_cmnd>:
-
-
-
- void lcd_cmnd (unsigned char cmnd)
- {
-	 LCD_PRT = (LCD_PRT & 0X0F) | (cmnd & 0XF0); // clearing 4 bits from port.. clearing first 4 bits of cmnd
   92:	9b b3       	in	r25, 0x1b	; 27
   94:	9f 70       	andi	r25, 0x0F	; 15
   96:	28 2f       	mov	r18, r24
   98:	20 7f       	andi	r18, 0xF0	; 240
   9a:	92 2b       	or	r25, r18
   9c:	9b bb       	out	0x1b, r25	; 27
-	 LCD_PRT &= ~(1<<LCD_RS);
   9e:	d8 98       	cbi	0x1b, 0	; 27
-	 LCD_PRT &= ~(1<<LCD_RW);
   a0:	d9 98       	cbi	0x1b, 1	; 27
-
-	 LCD_PRT |= (1<<LCD_EN);
   a2:	da 9a       	sbi	0x1b, 2	; 27
 	#else
 		//round up by default
@@ -166,17 +134,11 @@ void i2c_S_init (uint8_t slaveaddress)
 
 	__builtin_avr_delay_cycles(__ticks_dc);
   a4:	00 00       	nop
-	 _delay_us(1);
-	 LCD_PRT &= ~(1<<LCD_EN);
   a6:	da 98       	cbi	0x1b, 2	; 27
   a8:	36 e0       	ldi	r19, 0x06	; 6
   aa:	3a 95       	dec	r19
   ac:	f1 f7       	brne	.-4      	; 0xaa <lcd_cmnd+0x18>
   ae:	00 c0       	rjmp	.+0      	; 0xb0 <lcd_cmnd+0x1e>
-
-	 _delay_us(20);
-
-	 LCD_PRT = (LCD_PRT & 0X0F) | (cmnd<<4);
   b0:	2b b3       	in	r18, 0x1b	; 27
   b2:	2f 70       	andi	r18, 0x0F	; 15
   b4:	30 e1       	ldi	r19, 0x10	; 16
@@ -185,44 +147,27 @@ void i2c_S_init (uint8_t slaveaddress)
   ba:	11 24       	eor	r1, r1
   bc:	82 2b       	or	r24, r18
   be:	8b bb       	out	0x1b, r24	; 27
-	 LCD_PRT |= (1<<LCD_EN);
   c0:	da 9a       	sbi	0x1b, 2	; 27
   c2:	00 00       	nop
-	 _delay_us(1);
-	 LCD_PRT &= ~(1<<LCD_EN);
   c4:	da 98       	cbi	0x1b, 2	; 27
   c6:	08 95       	ret
 
 000000c8 <lcd_data>:
- }
- void lcd_data (unsigned char data)
- {
-	 LCD_PRT = (LCD_PRT & 0X0F) | (data & 0XF0); // clearing 4 bits from port.. clearing first 4 bits of cmnd
   c8:	9b b3       	in	r25, 0x1b	; 27
   ca:	9f 70       	andi	r25, 0x0F	; 15
   cc:	28 2f       	mov	r18, r24
   ce:	20 7f       	andi	r18, 0xF0	; 240
   d0:	92 2b       	or	r25, r18
   d2:	9b bb       	out	0x1b, r25	; 27
-	 LCD_PRT |= (1<<LCD_RS);
   d4:	d8 9a       	sbi	0x1b, 0	; 27
-	 LCD_PRT &= ~(1<<LCD_RW);
   d6:	d9 98       	cbi	0x1b, 1	; 27
-
-	 LCD_PRT |= (1<<LCD_EN);
   d8:	da 9a       	sbi	0x1b, 2	; 27
   da:	00 00       	nop
-	 _delay_us(1);
-	 LCD_PRT &= ~(1<<LCD_EN);
   dc:	da 98       	cbi	0x1b, 2	; 27
   de:	36 e0       	ldi	r19, 0x06	; 6
   e0:	3a 95       	dec	r19
   e2:	f1 f7       	brne	.-4      	; 0xe0 <lcd_data+0x18>
   e4:	00 c0       	rjmp	.+0      	; 0xe6 <lcd_data+0x1e>
-
-	 _delay_us(20);
-
-	 LCD_PRT = (LCD_PRT & 0X0F) | (data<<4);
   e6:	2b b3       	in	r18, 0x1b	; 27
   e8:	2f 70       	andi	r18, 0x0F	; 15
   ea:	30 e1       	ldi	r19, 0x10	; 16
@@ -231,23 +176,14 @@ void i2c_S_init (uint8_t slaveaddress)
   f0:	11 24       	eor	r1, r1
   f2:	82 2b       	or	r24, r18
   f4:	8b bb       	out	0x1b, r24	; 27
-	 LCD_PRT |= (1<<LCD_EN);
   f6:	da 9a       	sbi	0x1b, 2	; 27
   f8:	00 00       	nop
-	 _delay_us(1);
-	 LCD_PRT &= ~(1<<LCD_EN);
   fa:	da 98       	cbi	0x1b, 2	; 27
   fc:	08 95       	ret
 
 000000fe <lcd_intit>:
- }
- void lcd_intit ()
- {
-	 LCD_DDR  = 0xff;
   fe:	8f ef       	ldi	r24, 0xFF	; 255
  100:	8a bb       	out	0x1a, r24	; 26
-
-	 LCD_PRT &= ~(1<<LCD_EN );   //LCD_en = 0
  102:	da 98       	cbi	0x1b, 2	; 27
  104:	83 ef       	ldi	r24, 0xF3	; 243
  106:	91 e0       	ldi	r25, 0x01	; 1
@@ -255,51 +191,35 @@ void i2c_S_init (uint8_t slaveaddress)
  10a:	f1 f7       	brne	.-4      	; 0x108 <lcd_intit+0xa>
  10c:	00 c0       	rjmp	.+0      	; 0x10e <lcd_intit+0x10>
  10e:	00 00       	nop
-	 _delay_us(2000);			//waiting for stable power
-	 lcd_cmnd(0x33);				// 4 bit mode
  110:	83 e3       	ldi	r24, 0x33	; 51
  112:	bf df       	rcall	.-130    	; 0x92 <lcd_cmnd>
  114:	91 e2       	ldi	r25, 0x21	; 33
  116:	9a 95       	dec	r25
  118:	f1 f7       	brne	.-4      	; 0x116 <lcd_intit+0x18>
  11a:	00 00       	nop
-	 _delay_us(100);				//waiting
-
-	 lcd_cmnd(0x32);				// 4 bit mode
  11c:	82 e3       	ldi	r24, 0x32	; 50
  11e:	b9 df       	rcall	.-142    	; 0x92 <lcd_cmnd>
  120:	81 e2       	ldi	r24, 0x21	; 33
  122:	8a 95       	dec	r24
  124:	f1 f7       	brne	.-4      	; 0x122 <lcd_intit+0x24>
-	 _delay_us(100);				// waiting
-
-	 lcd_cmnd(0x28);				// 4 bit mode
  126:	00 00       	nop
  128:	88 e2       	ldi	r24, 0x28	; 40
  12a:	b3 df       	rcall	.-154    	; 0x92 <lcd_cmnd>
  12c:	91 e2       	ldi	r25, 0x21	; 33
  12e:	9a 95       	dec	r25
  130:	f1 f7       	brne	.-4      	; 0x12e <lcd_intit+0x30>
-	 _delay_us(100);				//waiting
-
-	 lcd_cmnd(0x0E);				// display on / cursor on
  132:	00 00       	nop
  134:	8e e0       	ldi	r24, 0x0E	; 14
  136:	ad df       	rcall	.-166    	; 0x92 <lcd_cmnd>
  138:	81 e2       	ldi	r24, 0x21	; 33
  13a:	8a 95       	dec	r24
  13c:	f1 f7       	brne	.-4      	; 0x13a <lcd_intit+0x3c>
-	 _delay_us(100);				// waiting
-
-	 lcd_cmnd(0x01);				//Clear LCD
  13e:	00 00       	nop
  140:	81 e0       	ldi	r24, 0x01	; 1
  142:	a7 df       	rcall	.-178    	; 0x92 <lcd_cmnd>
  144:	91 e2       	ldi	r25, 0x21	; 33
  146:	9a 95       	dec	r25
  148:	f1 f7       	brne	.-4      	; 0x146 <lcd_intit+0x48>
-	 _delay_us(100);				//waiting
-	 lcd_cmnd(0x06);				//shift cursor right......
  14a:	00 00       	nop
  14c:	86 e0       	ldi	r24, 0x06	; 6
  14e:	a1 df       	rcall	.-190    	; 0x92 <lcd_cmnd>
@@ -310,17 +230,12 @@ void i2c_S_init (uint8_t slaveaddress)
  158:	08 95       	ret
 
 0000015a <lcd_goto>:
-	 _delay_us(100);
- }
- void lcd_goto(unsigned char x , unsigned char y)
- {
  15a:	cf 93       	push	r28
  15c:	df 93       	push	r29
  15e:	00 d0       	rcall	.+0      	; 0x160 <lcd_goto+0x6>
  160:	00 d0       	rcall	.+0      	; 0x162 <lcd_goto+0x8>
  162:	cd b7       	in	r28, 0x3d	; 61
  164:	de b7       	in	r29, 0x3e	; 62
-	 unsigned char address[] = {0x80,0xC0,0x94,0xD4};
  166:	90 e8       	ldi	r25, 0x80	; 128
  168:	99 83       	std	Y+1, r25	; 0x01
  16a:	90 ec       	ldi	r25, 0xC0	; 192
@@ -329,7 +244,6 @@ void i2c_S_init (uint8_t slaveaddress)
  170:	9b 83       	std	Y+3, r25	; 0x03
  172:	94 ed       	ldi	r25, 0xD4	; 212
  174:	9c 83       	std	Y+4, r25	; 0x04
-	 lcd_cmnd(address[y-1] + x - 1);
  176:	fe 01       	movw	r30, r28
  178:	e6 0f       	add	r30, r22
  17a:	f1 1d       	adc	r31, r1
@@ -341,9 +255,6 @@ void i2c_S_init (uint8_t slaveaddress)
  186:	8a 95       	dec	r24
  188:	f1 f7       	brne	.-4      	; 0x186 <lcd_goto+0x2c>
  18a:	00 00       	nop
-	 _delay_us(100);
-
- }
  18c:	0f 90       	pop	r0
  18e:	0f 90       	pop	r0
  190:	0f 90       	pop	r0
@@ -353,40 +264,23 @@ void i2c_S_init (uint8_t slaveaddress)
  198:	08 95       	ret
 
 0000019a <lcd_prnt>:
- void lcd_prnt (char * str)
- {
  19a:	0f 93       	push	r16
  19c:	1f 93       	push	r17
  19e:	cf 93       	push	r28
  1a0:	fc 01       	movw	r30, r24
-	 unsigned char i = 0 ;
-	 while (str[i]!=0)
  1a2:	80 81       	ld	r24, Z
  1a4:	88 23       	and	r24, r24
  1a6:	51 f0       	breq	.+20     	; 0x1bc <lcd_prnt+0x22>
  1a8:	8f 01       	movw	r16, r30
  1aa:	c0 e0       	ldi	r28, 0x00	; 0
-	 {
-		 lcd_data(str[i]);
  1ac:	8d df       	rcall	.-230    	; 0xc8 <lcd_data>
-		 i++;
  1ae:	cf 5f       	subi	r28, 0xFF	; 255
-
- }
- void lcd_prnt (char * str)
- {
-	 unsigned char i = 0 ;
-	 while (str[i]!=0)
  1b0:	f8 01       	movw	r30, r16
  1b2:	ec 0f       	add	r30, r28
  1b4:	f1 1d       	adc	r31, r1
  1b6:	80 81       	ld	r24, Z
  1b8:	81 11       	cpse	r24, r1
  1ba:	f8 cf       	rjmp	.-16     	; 0x1ac <lcd_prnt+0x12>
-	 {
-		 lcd_data(str[i]);
-		 i++;
-	 }
  1bc:	cf 91       	pop	r28
  1be:	1f 91       	pop	r17
  1c0:	0f 91       	pop	r16

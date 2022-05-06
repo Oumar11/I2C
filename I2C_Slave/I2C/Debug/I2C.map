@@ -571,15 +571,15 @@ END GROUP
  .debug_frame   0x00000084       0x84 src/LCD4.o
  .debug_frame   0x00000108       0x34 src/main.o
 
-.debug_str      0x00000000     0x6188
+.debug_str      0x00000000     0x61b6
  *(.debug_str)
  .debug_str     0x00000000      0x196 C:/Program Files (x86)/Atmel/Studio/7.0/Packs/atmel/ATmega_DFP/1.6.364/gcc/dev/atmega32/avr5/crtatmega32.o
  .debug_str     0x00000196     0x5b07 src/I2C.o
                                0x5ba9 (size before relaxing)
  .debug_str     0x00005c9d      0x4c9 src/LCD4.o
                                0x601b (size before relaxing)
- .debug_str     0x00006166       0x22 src/main.o
-                               0x601d (size before relaxing)
+ .debug_str     0x00006166       0x50 src/main.o
+                               0x6024 (size before relaxing)
 
 .debug_loc      0x00000000      0x4ec
  *(.debug_loc)
